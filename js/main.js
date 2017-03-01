@@ -65,7 +65,7 @@ $(document).ready(function(){
         var c3 = d3.select('#value').selectAll('label').data(headers).enter()
         .append('div')
         .attr('class', 'checkbox')
-        
+
           c3.append('input')
           .attr('type', 'checkbox')
           .attr('id', function(d){
@@ -96,6 +96,11 @@ $(document).ready(function(){
     var valuecolumn;
     d3.select('#value').selectAll('input:checked').each(function(d){
       valuecolumn = d3.select(this).node().value
+    })
+
+    var tozero = false;
+    d3.select('#tozero').selectAll('input:checked').each(function(d){
+      tozero = true;
     })
 
     var aggregation;
@@ -139,7 +144,7 @@ $(document).ready(function(){
            add[datecolumn] = format(d);
            add.date_to_use = format(d);
            add[groupcolumn] = group.key;
-           add[valuecolumn] = 0;
+           add[valuecolumn] = undefined;
            group.values.push(add)
          }
        })
@@ -151,6 +156,19 @@ $(document).ready(function(){
        })
 
        group.values.sort(function(a,b){return d3.ascending(a.date_to_use,b.date_to_use)})
+
+       group.values.forEach(function(d,i){
+         if(d[valuecolumn] === undefined && tozero){
+           d[valuecolumn] = 0
+         }else if(d[valuecolumn] === undefined && !tozero){
+           if(i-1>-1){
+             d[valuecolumn] = group.values[i-1][valuecolumn]
+           }else{
+             d[valuecolumn] = 0
+           }
+
+         }
+       })
 
       })
       var output = d3.merge(nested.map(function(d){
@@ -190,7 +208,7 @@ $(document).ready(function(){
            })
            add[datecolumn] = format(d);
            add.date_to_use = format(d);
-           add[valuecolumn] = 0;
+           add[valuecolumn] = undefined;
            data.push(add)
          }
        })
@@ -202,6 +220,18 @@ $(document).ready(function(){
        })
 
        data.sort(function(a,b){return d3.ascending(a.date_to_use,b.date_to_use)})
+       data.forEach(function(d,i){
+         if(d[valuecolumn] === undefined && tozero){
+           d[valuecolumn] = 0
+         }else if(d[valuecolumn] === undefined && !tozero){
+           if(i-1>-1){
+             d[valuecolumn] = data[i-1][valuecolumn]
+           }else{
+             d[valuecolumn] = 0
+           }
+
+         }
+       })
        $('#output').val(d3.tsvFormat(data))
     }
 
